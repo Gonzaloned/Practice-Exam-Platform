@@ -1,0 +1,463 @@
+/* =========================================================
+   HOME PAGE
+   ========================================================= */
+
+.public-page {
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 70% -20%,
+      rgba(70, 91, 125, .18),
+      transparent 35%
+    ),
+    #090b10;
+
+  color: #e8edf5;
+}
+
+
+/* =========================================================
+   NAVBAR
+   ========================================================= */
+
+.main-navbar {
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 42px;
+
+  border-bottom: 1px solid #202631;
+
+  background: rgba(11, 14, 20, .94);
+}
+
+.main-navbar .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  color: #e8edf5;
+  text-decoration: none;
+}
+
+.main-navbar nav {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.main-navbar nav a {
+  color: #7f899a;
+
+  font-size: 12px;
+
+  text-decoration: none;
+
+  transition: color .15s;
+}
+
+.main-navbar nav a:hover {
+  color: #e8edf5;
+}
+
+.main-navbar .login-link {
+  padding: 9px 14px;
+
+  border: 1px solid #303947;
+  border-radius: 7px;
+
+  color: #dce2eb;
+
+  background: #151922;
+}
+
+.main-navbar .login-link:hover {
+  background: #1b212b;
+}
+
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid #344052;
+  border-radius: 8px;
+
+  color: #fff;
+
+  font-weight: 700;
+
+  background:
+    linear-gradient(
+      145deg,
+      #222a36,
+      #12161e
+    );
+}
+
+.brand-name {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.brand-subtitle {
+  margin-top: 3px;
+
+  color: #727c8d;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.home-hero {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  padding: 110px 42px 100px;
+}
+
+.home-hero-content {
+  max-width: 720px;
+}
+
+.home-eyebrow {
+  color: #7f899a;
+
+  font: 500 10px "DM Mono", monospace;
+
+  letter-spacing: .12em;
+}
+
+.home-hero h1 {
+  max-width: 720px;
+
+  margin: 17px 0 22px;
+
+  color: #edf1f7;
+
+  font-size: 48px;
+  line-height: 1.1;
+
+  letter-spacing: -.035em;
+}
+
+.home-hero p {
+  max-width: 620px;
+
+  margin: 0 0 30px;
+
+  color: #8993a3;
+
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   PRIMARY BUTTON
+   ========================================================= */
+
+.primary-link {
+  display: inline-block;
+
+  padding: 11px 16px;
+
+  border: 1px solid #3b4655;
+  border-radius: 7px;
+
+  color: #edf1f7;
+
+  background: #202733;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    background .15s,
+    border-color .15s;
+}
+
+.primary-link:hover {
+  border-color: #4a5667;
+
+  background: #293240;
+}
+
+
+/* =========================================================
+   EXAMS SECTION
+   ========================================================= */
+
+.exams-section {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  padding: 30px 42px 90px;
+
+  border-top: 1px solid #202631;
+}
+
+.section-heading {
+  margin-bottom: 25px;
+}
+
+.section-heading .eyebrow {
+  color: #667184;
+
+  font: 500 10px "DM Mono", monospace;
+
+  letter-spacing: .12em;
+}
+
+.section-heading h2 {
+  margin: 8px 0 0;
+
+  color: #e8edf5;
+
+  font-size: 22px;
+
+  letter-spacing: -.02em;
+}
+
+
+/* =========================================================
+   EXAM GRID
+   ========================================================= */
+
+.exam-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 16px;
+}
+
+
+/* =========================================================
+   EXAM CARD
+   ========================================================= */
+
+.public-exam-card {
+  padding: 22px;
+
+  border: 1px solid #252d39;
+  border-radius: 9px;
+
+  background: #10141b;
+
+  transition:
+    border-color .15s,
+    background .15s,
+    transform .15s;
+}
+
+.public-exam-card:hover {
+  border-color: #364150;
+
+  background: #121720;
+
+  transform: translateY(-2px);
+}
+
+.exam-icon {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  margin-bottom: 20px;
+
+  border: 1px solid #303947;
+  border-radius: 8px;
+
+  color: #c7cfdb;
+
+  background: #171c24;
+
+  font: 500 11px "DM Mono", monospace;
+}
+
+.public-exam-card h3 {
+  margin: 0;
+
+  color: #dfe5ee;
+
+  font-size: 14px;
+}
+
+.public-exam-card p {
+  min-height: 40px;
+
+  margin: 9px 0 20px;
+
+  color: #737e8f;
+
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.public-exam-card a {
+  color: #aeb8c7;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition: color .15s;
+}
+
+.public-exam-card a:hover {
+  color: #e8edf5;
+}
+
+
+/* =========================================================
+   FEATURES
+   ========================================================= */
+
+.home-features {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  padding: 70px 42px 90px;
+
+  border-top: 1px solid #202631;
+}
+
+.home-feature-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+.home-feature {
+  padding: 22px;
+
+  border: 1px solid #252d39;
+  border-radius: 9px;
+
+  background: #10141b;
+
+  transition:
+    border-color .15s,
+    background .15s;
+}
+
+.home-feature:hover {
+  border-color: #364150;
+
+  background: #121720;
+}
+
+.feature-number {
+  margin-bottom: 25px;
+
+  color: #596575;
+
+  font: 500 10px "DM Mono", monospace;
+}
+
+.home-feature h3 {
+  margin: 0 0 10px;
+
+  color: #dfe5ee;
+
+  font-size: 13px;
+}
+
+.home-feature p {
+  margin: 0;
+
+  color: #737e8f;
+
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.main-footer {
+  padding: 25px 42px;
+
+  border-top: 1px solid #202631;
+
+  color: #596575;
+
+  font-size: 10px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 800px) {
+
+  .main-navbar {
+    padding: 0 20px;
+  }
+
+  .main-navbar nav {
+    gap: 12px;
+  }
+
+  .home-hero {
+    padding: 75px 20px;
+  }
+
+  .home-hero h1 {
+    font-size: 36px;
+  }
+
+  .exams-section {
+    padding: 40px 20px 70px;
+  }
+
+  .exam-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-features {
+    padding: 50px 20px 70px;
+  }
+
+  .home-feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .main-footer {
+    padding: 25px 20px;
+  }
+}

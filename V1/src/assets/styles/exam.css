@@ -1,0 +1,816 @@
+/* =========================================================
+   EXAM
+   ========================================================= */
+
+.exam-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 70% -20%,
+      rgba(70, 91, 125, .18),
+      transparent 35%
+    ),
+    #090b10;
+}
+
+
+/* =========================================================
+   EXAM HEADER
+   ========================================================= */
+
+.exam-header {
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 28px;
+
+  border-bottom: 1px solid #202631;
+
+  background: rgba(11, 14, 20, .94);
+}
+
+.exam-header .brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.exam-header .brand-mark {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid #344052;
+  border-radius: 8px;
+
+  color: #fff;
+
+  font-weight: 700;
+
+  background: linear-gradient(
+    145deg,
+    #222a36,
+    #12161e
+  );
+}
+
+.exam-header .brand-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.exam-header .brand-subtitle {
+  margin-top: 3px;
+
+  color: #727c8d;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   EXAM META
+   ========================================================= */
+
+.exam-meta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #7f899a;
+
+  font-size: 12px;
+}
+
+.progress-wrap strong {
+  color: #dfe5ee;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   TIMER
+   ========================================================= */
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 8px 11px;
+
+  border: 1px solid #29313d;
+  border-radius: 7px;
+
+  background: #11151c;
+
+  font-family: "DM Mono", monospace;
+
+  font-size: 12px;
+}
+
+.timer-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #8cae92;
+
+  box-shadow:
+    0 0 0 3px rgba(140, 174, 146, .1);
+}
+
+
+/* =========================================================
+   FINISH BUTTON
+   ========================================================= */
+
+.finish-btn {
+  padding: 9px 13px;
+
+  border: 1px solid #303947;
+  border-radius: 7px;
+
+  color: #c7cfdb;
+
+  background: #151922;
+
+  cursor: pointer;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.finish-btn:hover {
+  background: #1b212b;
+}
+
+
+/* =========================================================
+   EXAM LAYOUT
+   ========================================================= */
+
+.exam-layout {
+  min-height: calc(100vh - 72px);
+
+  display: grid;
+
+  grid-template-columns: 285px minmax(0, 1fr);
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+
+  border-right: 1px solid #202631;
+
+  background: #0d1016;
+}
+
+.sidebar-title {
+  padding: 25px 18px 19px;
+
+  border-bottom: 1px solid #202631;
+}
+
+.sidebar-title h2 {
+  max-width: 190px;
+
+  margin: 7px 0 0;
+
+  color: #e8edf5;
+
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sidebar-title .eyebrow {
+  color: #667184;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: .12em;
+}
+
+.task-count {
+  display: inline-block;
+
+  margin-top: 13px;
+
+  padding: 4px 7px;
+
+  border: 1px solid #29313c;
+  border-radius: 5px;
+
+  color: #737e8f;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   TASK LIST
+   ========================================================= */
+
+.task-list {
+  padding: 10px;
+}
+
+.task-item {
+  position: relative;
+
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  padding: 10px 9px;
+
+  margin-bottom: 3px;
+
+  border: 1px solid transparent;
+  border-radius: 7px;
+
+  color: #8993a3;
+
+  background: transparent;
+
+  text-align: left;
+
+  cursor: pointer;
+}
+
+.task-item:hover {
+  color: #b9c1ce;
+  background: #12161e;
+}
+
+.task-item.active {
+  border-color: #2c3542;
+
+  color: #e9edf4;
+
+  background: #171c24;
+}
+
+
+/* =========================================================
+   TASK NUMBER
+   ========================================================= */
+
+.task-number {
+  width: 25px;
+  height: 25px;
+
+  flex: 0 0 25px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 6px;
+
+  color: #6f7a8c;
+
+  background: #171c24;
+
+  font: 500 10px "DM Mono", monospace;
+}
+
+.task-number.done {
+  color: #a5b9a9;
+  background: #17201a;
+}
+
+.task-number.current {
+  color: #e4e9f0;
+
+  border: 1px solid #4a5667;
+
+  background: #202733;
+}
+
+
+/* =========================================================
+   TASK INFO
+   ========================================================= */
+
+.task-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.task-info strong {
+  overflow: hidden;
+
+  color: inherit;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-info small {
+  color: #667184;
+
+  font-size: 10px;
+}
+
+.current-dot {
+  width: 5px;
+  height: 5px;
+
+  margin-left: auto;
+
+  flex: 0 0 auto;
+
+  border-radius: 50%;
+
+  background: #aab8c9;
+}
+
+
+/* =========================================================
+   SIDEBAR FOOTER
+   ========================================================= */
+
+.sidebar-footer {
+  margin-top: auto;
+
+  padding: 17px 19px;
+
+  border-top: 1px solid #202631;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 8px;
+
+  color: #667184;
+
+  font-size: 10px;
+}
+
+.legend:first-child {
+  margin-top: 0;
+}
+
+.legend-dot {
+  width: 5px;
+  height: 5px;
+
+  border-radius: 50%;
+
+  background: #424b59;
+}
+
+.legend-dot.done {
+  background: #8da38f;
+}
+
+.legend-dot.current {
+  background: #aab8c9;
+}
+
+
+/* =========================================================
+   WORKSPACE
+   ========================================================= */
+
+.workspace {
+  width: 100%;
+  max-width: 1050px;
+
+  margin: 0 auto;
+
+  padding: 36px 42px 28px;
+}
+
+
+/* =========================================================
+   TASK HEADING
+   ========================================================= */
+
+.task-heading {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.breadcrumb {
+  color: #667184;
+
+  font: 500 10px "DM Mono", monospace;
+
+  text-transform: uppercase;
+
+  letter-spacing: .08em;
+}
+
+.breadcrumb span {
+  margin: 0 7px;
+
+  color: #3f4753;
+}
+
+.task-heading h1 {
+  margin: 8px 0 0;
+
+  color: #e8edf5;
+
+  font-size: 23px;
+
+  letter-spacing: -.025em;
+}
+
+
+/* =========================================================
+   TASK STATE
+   ========================================================= */
+
+.task-state {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 7px 9px;
+
+  border: 1px solid #29313d;
+  border-radius: 6px;
+
+  color: #778294;
+
+  font-size: 10px;
+}
+
+.task-state span {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #515b69;
+}
+
+.task-state.current span {
+  background: #aebaca;
+}
+
+.task-state.done span {
+  background: #8da38f;
+}
+
+
+/* =========================================================
+   DESCRIPTION
+   ========================================================= */
+
+.description-card {
+  margin-top: 26px;
+
+  padding: 21px 22px;
+
+  border: 1px solid #252d39;
+  border-radius: 9px;
+
+  background: #10141b;
+}
+
+.description-card .card-label {
+  color: #667184;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  letter-spacing: .12em;
+}
+
+.description-card p {
+  max-width: 800px;
+
+  margin: 9px 0 0;
+
+  color: #c7ced9;
+
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   REQUIREMENTS
+   ========================================================= */
+
+.requirements {
+  margin-top: 19px;
+
+  padding-top: 17px;
+
+  border-top: 1px solid #202733;
+}
+
+.requirements ul {
+  padding: 0;
+  margin: 9px 0 0;
+
+  list-style: none;
+}
+
+.requirements li {
+  display: flex;
+
+  gap: 8px;
+
+  margin: 6px 0;
+
+  color: #9ba5b4;
+
+  font-size: 11px;
+}
+
+.requirement-bullet {
+  color: #596575;
+}
+
+
+/* =========================================================
+   TERMINAL
+   ========================================================= */
+
+.terminal-card {
+  margin-top: 16px;
+
+  overflow: hidden;
+
+  border: 1px solid #252d39;
+  border-radius: 9px;
+
+  background: #090c10;
+
+  box-shadow: 0 16px 45px rgba(0, 0, 0, .18);
+}
+
+.terminal-toolbar {
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 12px;
+
+  border-bottom: 1px solid #202631;
+
+  background: #11151b;
+}
+
+.terminal-title {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color: #aeb7c5;
+
+  font: 500 10px "DM Mono", monospace;
+}
+
+.terminal-status {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+
+  background: #839786;
+}
+
+.terminal-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  color: #555f6e;
+
+  font: 9px "DM Mono", monospace;
+}
+
+.terminal-actions button {
+  padding: 0;
+
+  border: 0;
+
+  color: #677282;
+
+  background: none;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   TERMINAL CONTENT
+   ========================================================= */
+
+.terminal {
+  min-height: 315px;
+
+  padding: 19px;
+
+  color: #c7d0db;
+
+  font: 12px/1.7 "DM Mono", monospace;
+}
+
+.prompt {
+  color: #a8b9aa;
+}
+
+.colon,
+.symbol {
+  color: #7b8797;
+}
+
+.path {
+  color: #aeb8c7;
+}
+
+.output {
+  padding-left: 4px;
+
+  color: #7e8999;
+}
+
+.spacer {
+  height: 13px;
+}
+
+.cursor {
+  color: #d6dde7;
+
+  animation: exam-blink 1.1s infinite;
+}
+
+@keyframes exam-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+
+/* =========================================================
+   WORKSPACE FOOTER
+   ========================================================= */
+
+.workspace-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-top: 15px;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  color: #657082;
+
+  font-size: 10px;
+}
+
+.hint-icon {
+  width: 16px;
+  height: 16px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid #303947;
+  border-radius: 50%;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   CHECK BUTTON
+   ========================================================= */
+
+.check-btn {
+  padding: 10px 14px;
+
+  border: 1px solid #374150;
+  border-radius: 7px;
+
+  color: #e6ebf2;
+
+  background: #252d38;
+
+  cursor: pointer;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.check-btn:hover {
+  background: #2c3542;
+}
+
+.check-btn span {
+  margin-left: 8px;
+
+  color: #98a5b5;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1100px) {
+
+  .exam-header {
+    padding: 0 16px;
+  }
+
+  .brand-subtitle,
+  .progress-wrap {
+    display: none;
+  }
+
+  .exam-meta {
+    gap: 8px;
+  }
+
+  .exam-layout {
+    grid-template-columns: 235px minmax(0, 1fr);
+  }
+
+  .workspace {
+    padding: 25px;
+  }
+}
+
+
+@media (max-width: 750px) {
+
+  .exam-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .workspace {
+    padding: 20px;
+  }
+
+  .task-heading {
+    flex-direction: column;
+
+    gap: 15px;
+  }
+
+  .workspace-footer {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+}
