@@ -4,7 +4,7 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "change-this-secret-key")
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
-        "mysql+pymysql://examlab:change-me@localhost:3306/examlab"
+        "mysql+pymysql://gdelavega:lpdlpslsela@localhost:3306/examlab"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "change-this-jwt-secret")
