@@ -58,18 +58,32 @@ API:
 - POST `/api/auth/register`
 - POST `/api/auth/login`
 
-The database tables are currently created automatically with SQLAlchemy when the application starts.
+Missing database tables are created automatically when the application starts.
+SQLAlchemy does not update existing tables when a model changes. If you are
+upgrading a database that already has a `users` table, apply the migration
+before registering users:
+
+```bash
+mysql -u examlab -p examlab < migrations/001_add_user_full_name.sql
+```
+
+Replace `examlab` with the database username and database name from your
+configuration if they differ. Restart the Flask server after the migration.
 
 ## Example register
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/register   -H "Content-Type: application/json"   -d '{"email":"test@example.com","password":"password123"}'
+curl -X POST http://localhost:5000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"full_name":"Example Test User","email":"test@example.com","password":"password123"}'
 ```
 
 ## Example login
 
 ```bash
-curl -X POST http://localhost:5000/api/auth/login   -H "Content-Type: application/json"   -d '{"email":"test@example.com","password":"password123"}'
+curl -X POST http://localhost:5000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
 ```
 
 ## Next steps
