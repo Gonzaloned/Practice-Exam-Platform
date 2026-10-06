@@ -1,0 +1,2 @@
+ALTER TABLE labs
+ADD COLUMN task_upid VARCHAR(255) NULL;

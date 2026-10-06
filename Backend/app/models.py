@@ -204,6 +204,11 @@ class Lab(db.Model):
         nullable=True
     )
 
+    task_upid = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
     vm_id = db.Column(
         db.Integer,
         nullable=True
