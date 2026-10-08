@@ -60,6 +60,11 @@ API:
 - POST `/api/exam/sessions` (authenticated; starts or resumes the user's LFCS session)
 - GET `/api/exam/sessions/<attempt_id>` (authenticated; checks readiness and expiry)
 - POST `/api/exam/sessions/<attempt_id>/finish` (authenticated; closes the attempt and lab)
+- GET `/api/proxmox/status` (authenticated; verifies Flask-to-Proxmox API access)
+- GET `/api/proxmox/vms` (authenticated; lists QEMU VMs on the configured node)
+- GET `/api/proxmox/vms/<vmid>` (authenticated; returns VM status)
+- POST `/api/proxmox/commands` (authenticated; starts/stops allowlisted VMs)
+- Socket.IO namespace `/proxmox` (JWT-authenticated command console)
 
 Missing database tables are created automatically when the application starts.
 SQLAlchemy does not update existing tables when a model changes. If you are
@@ -121,6 +126,61 @@ ready or provisioning fails.
 The current task workspace remains a practice UI: task completion and scoring
 are not yet evaluated or persisted. The result page reports lifecycle and
 environment status without presenting an invented score.
+
+## Proxmox ExamTry console
+
+The authenticated Vue page at `/examtry` keeps a Socket.IO connection to Flask.
+Flask uses the Proxmox API token from its environment; credentials are never
+sent to the browser. The console supports `connect`, `vms`, `status <vmid>`,
+`start <vmid>`, and `stop <vmid>`. It does not run shell commands or forward
+arbitrary Proxmox API paths.
+
+Configure the backend `.env` with the API URL, token ID/secret, and node as
+described above. Set `PROXMOX_CONSOLE_ALLOWED_VMIDS` to a comma-separated list
+of disposable VM IDs that the console is allowed to start or stop; leave it
+empty to disable mutations. Do not include a production VM or the exam template
+VM. Restart Flask after changing the setting. All authenticated accounts may
+read the configured node's QEMU VM inventory, but start/stop requests are
+rejected unless the VM ID is allowlisted.
+The Proxmox API token needs node-audit/read permissions for connection status,
+inventory, and VM status, plus VM power-management permission only for the
+allowlisted VM IDs. The exam template is blocked from console start/stop even
+if it is mistakenly added to the allowlist.
+
+Start Flask normally and configure the frontend's `VITE_API_BASE_URL` to the
+Flask base URL if it is not `http://127.0.0.1:5000`. Sign in, open **Proxmox
+test**, then run `connect` to verify the Proxmox API token and node access, `vms`
+to list VMs, `status 5100` to inspect a VM, or `start 5100` / `stop 5100` for
+an allowlisted test VM. Mutating commands return the Proxmox task UPID when one
+is created; use `status <vmid>` to check the VM afterward.
+
+### Console API and request flow
+
+The ExamTry page opens a persistent Socket.IO connection to Flask at
+`/proxmox`. It sends the JWT in the Socket.IO handshake `auth` object and emits
+`proxmox:command` with an allowlisted command and optional VM ID. Flask verifies
+the access token when connecting, validates each command, calls the Proxmox
+provider, and returns the result as the event acknowledgement.
+
+| Socket command | Flask operation | Proxmox API operation |
+| --- | --- | --- |
+| `{"command":"connect"}` | Test backend connection and node access | `GET /version`, `GET /nodes/{node}/status` |
+| `{"command":"vms"}` | List QEMU VMs on the configured node | `GET /nodes/{node}/qemu` |
+| `{"command":"status","vmid":5100}` | Read one VM's current status | `GET /nodes/{node}/qemu/{vmid}/status/current` |
+| `{"command":"start","vmid":5100}` | Validate the command and VM allowlist | `POST /nodes/{node}/qemu/{vmid}/status/start` |
+| `{"command":"stop","vmid":5100}` | Validate the command and VM allowlist | Read VM status, then `POST .../status/stop` if running |
+
+The REST endpoints above remain available for HTTP clients. Flask starts with
+`socketio.run` in `run.py`; do not replace it with `app.run` when using the
+interactive console. For local development, install backend requirements and
+run `python run.py`, then install frontend dependencies and run `npm run dev`
+from `Frontend`.
+
+Every HTTP endpoint requires the existing Flask JWT bearer token. Socket.IO
+clients provide that access token as `auth.token` during the handshake. The Vue
+console uses a fixed command grammar; no client-provided URL, HTTP method, or
+shell text is forwarded to Proxmox. Set `SOCKETIO_CORS_ALLOWED_ORIGINS` to the
+deployed frontend origin instead of `*` in production.
 
 ## Example register
 

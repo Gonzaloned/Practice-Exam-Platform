@@ -24,6 +24,12 @@ class Config:
     PROXMOX_NODE = os.getenv("PROXMOX_NODE", "")
     PROXMOX_TEMPLATE_VMID = os.getenv("PROXMOX_TEMPLATE_VMID", "")
     PROXMOX_STORAGE = os.getenv("PROXMOX_STORAGE", "")
+    PROXMOX_CONSOLE_ALLOWED_VMIDS = os.getenv(
+        "PROXMOX_CONSOLE_ALLOWED_VMIDS", ""
+    )
+    SOCKETIO_CORS_ALLOWED_ORIGINS = os.getenv(
+        "SOCKETIO_CORS_ALLOWED_ORIGINS", "*"
+    )
     PROXMOX_VERIFY_SSL = os.getenv("PROXMOX_VERIFY_SSL", "true").lower() not in {
         "0",
         "false",

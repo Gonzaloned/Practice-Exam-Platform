@@ -8,6 +8,7 @@ import Exam from '../views/Exam.vue'
 import ExamDetails from '../views/ExamDetails.vue'
 import Register from '../views/Register.vue'
 import AccountPage from '../views/AccountPage.vue'
+import ExamTry from '../views/ExamTry.vue'
 import { hasAccessToken } from '../services/auth'
 
 const router = createRouter({
@@ -42,6 +43,14 @@ const router = createRouter({
     {
       path: '/exam',
       redirect: '/exams',
+    },
+    {
+      path: '/examtry',
+      name: 'examtry',
+      component: ExamTry,
+      meta: {
+        requiresAuth: true,
+      },
     },
     {
       path: '/exam-session/:sessionId',

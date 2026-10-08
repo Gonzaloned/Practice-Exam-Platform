@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from .config import Config
-from .extensions import db, bcrypt, jwt
+from .extensions import db, bcrypt, jwt, socketio
 
 def create_app(test_config: dict | None = None):
     app = Flask(__name__)
@@ -23,6 +23,14 @@ def create_app(test_config: dict | None = None):
 
     from .routes.exam_sessions import exam_sessions_bp
     app.register_blueprint(exam_sessions_bp, url_prefix="/api/exam")
+
+    from .routes.proxmox_console import proxmox_console_bp
+    app.register_blueprint(proxmox_console_bp, url_prefix="/api/proxmox")
+
+    socketio.init_app(
+        app,
+        cors_allowed_origins=app.config["SOCKETIO_CORS_ALLOWED_ORIGINS"],
+    )
 
     with app.app_context():
         from . import models

@@ -23,6 +23,9 @@ class ProxmoxProvider:
         self.node = config.get("PROXMOX_NODE", "")
         template_vmid = config.get("PROXMOX_TEMPLATE_VMID", "")
         self.storage = config.get("PROXMOX_STORAGE", "")
+        self.console_allowed_vmids = config.get(
+            "PROXMOX_CONSOLE_ALLOWED_VMIDS", ""
+        )
         self.verify_ssl = config.get("PROXMOX_VERIFY_SSL", True)
         self.timeout = config.get("PROXMOX_TIMEOUT_SECONDS", 20)
 
@@ -32,14 +35,36 @@ class ProxmoxProvider:
             self.template_vmid = None
 
     @property
-    def is_configured(self) -> bool:
+    def is_api_configured(self) -> bool:
         return all((
             self.base_url,
             self.token_id,
             self.token_secret,
             self.node,
-            self.template_vmid is not None,
         ))
+
+    @property
+    def is_configured(self) -> bool:
+        return self.is_api_configured and self.template_vmid is not None
+
+    def allowed_console_vmids(self) -> set[int]:
+        vmids: set[int] = set()
+        for value in self.console_allowed_vmids.split(","):
+            value = value.strip()
+            if not value:
+                continue
+            try:
+                vmid = int(value)
+            except ValueError as error:
+                raise ProxmoxError(
+                    "The Proxmox console VM allowlist is invalid."
+                ) from error
+            if vmid < 1:
+                raise ProxmoxError(
+                    "The Proxmox console VM allowlist is invalid."
+                )
+            vmids.add(vmid)
+        return vmids
 
     def _request(
         self,
@@ -47,7 +72,7 @@ class ProxmoxProvider:
         path: str,
         data: dict[str, Any] | None = None,
     ) -> Any:
-        if not self.is_configured:
+        if not self.is_api_configured:
             raise ProxmoxError("The Proxmox environment provider is not configured.")
 
         url = f"{self.base_url}/api2/json{path}"
@@ -92,6 +117,51 @@ class ProxmoxProvider:
     @staticmethod
     def _path_part(value: str | int) -> str:
         return quote(str(value), safe="")
+
+    def test_connection(self) -> dict[str, Any]:
+        version = self._request("GET", "/version")
+        node_status = self._request(
+            "GET",
+            f"/nodes/{self._path_part(self.node)}/status",
+        )
+        if not isinstance(version, dict):
+            raise ProxmoxError("The environment provider returned an invalid version.")
+        if not isinstance(node_status, dict):
+            raise ProxmoxError("The environment provider returned an invalid node status.")
+        return {
+            key: version[key]
+            for key in ("version", "release", "repository")
+            if isinstance(version.get(key), str)
+        }
+
+    def list_vms(self) -> list[dict[str, Any]]:
+        node = self._path_part(self.node)
+        vms = self._request("GET", f"/nodes/{node}/qemu")
+        if not isinstance(vms, list):
+            raise ProxmoxError("The environment provider returned an invalid VM list.")
+        return [
+            {
+                key: vm[key]
+                for key in ("vmid", "name", "status", "uptime")
+                if key in vm
+            }
+            for vm in vms
+            if isinstance(vm, dict)
+        ]
+
+    def get_vm_status(self, vmid: int) -> dict[str, Any]:
+        node = self._path_part(self.node)
+        status = self._request(
+            "GET",
+            f"/nodes/{node}/qemu/{vmid}/status/current",
+        )
+        if not isinstance(status, dict):
+            raise ProxmoxError("The environment provider returned an invalid VM status.")
+        return {
+            key: status[key]
+            for key in ("status", "qmpstatus", "uptime", "name", "vmid")
+            if key in status
+        }
 
     def clone_vm(self, user_id: int, attempt_id: int) -> tuple[int, str]:
         if self.template_vmid is None:
