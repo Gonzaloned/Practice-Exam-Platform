@@ -363,6 +363,90 @@
   color: #8c97a7;
 }
 
+/* =========================================================
+   SUCCESS MODAL
+   ========================================================= */
+
+.modal-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  padding: 24px;
+
+  background: rgb(4 7 12 / 78%);
+  backdrop-filter: blur(6px);
+}
+
+.success-modal {
+  width: min(100%, 410px);
+  padding: 34px;
+
+  border: 1px solid #303947;
+  border-radius: 14px;
+
+  background: #141a23;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 50%);
+
+  text-align: center;
+
+  animation: success-modal-enter 180ms ease-out;
+}
+
+.success-icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 18px;
+  place-items: center;
+
+  border: 1px solid rgb(111 210 164 / 35%);
+  border-radius: 50%;
+
+  color: #8de0b5;
+  background: rgb(61 151 106 / 15%);
+
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.success-modal h2 {
+  margin: 0;
+
+  color: #edf1f7;
+
+  font-size: 21px;
+  font-weight: 600;
+}
+
+.success-modal p {
+  margin: 12px 0 24px;
+
+  color: #9aa5b5;
+
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.success-modal .auth-submit {
+  margin-top: 0;
+}
+
+@keyframes success-modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 
 /* =========================================================
    MOBILE

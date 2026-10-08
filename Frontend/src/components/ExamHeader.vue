@@ -15,9 +15,15 @@
       </div>
       <div class="timer">
         <span class="timer-dot"></span>
-        01:27:43
+        {{ remainingTime }}
       </div>
-      <button class="finish-btn">Finish exam</button>
+      <button
+        class="finish-btn"
+        :disabled="isFinishing"
+        @click="$emit('finish')"
+      >
+        {{ isFinishing ? 'Finishing...' : 'Finish exam' }}
+      </button>
     </div>
   </header>
 </template>
@@ -26,5 +32,11 @@
 defineProps<{
   completed: number
   total: number
+  remainingTime: string
+  isFinishing: boolean
+}>()
+
+defineEmits<{
+  finish: []
 }>()
 </script>

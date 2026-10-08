@@ -1,0 +1,70 @@
+.account-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 70% -20%, rgba(70, 91, 125, .18), transparent 35%),
+    #090b10;
+}
+
+.account-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 82px 42px;
+}
+
+.account-eyebrow {
+  color: #667184;
+  font: 500 10px "DM Mono", monospace;
+  letter-spacing: .12em;
+}
+
+.account-content h1 {
+  margin: 12px 0 10px;
+  color: #edf1f7;
+  font-size: 36px;
+  letter-spacing: -.035em;
+}
+
+.account-description {
+  margin: 0;
+  color: #8993a3;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.account-empty-state {
+  margin-top: 36px;
+  padding: 28px;
+  border: 1px solid #252d39;
+  border-radius: 9px;
+  background: #10141b;
+}
+
+.account-empty-state h2 {
+  margin: 0 0 10px;
+  color: #dfe5ee;
+  font-size: 16px;
+}
+
+.account-empty-state p {
+  margin: 0 0 18px;
+  color: #8993a3;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.account-empty-state a {
+  color: #c7cfdb;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.account-empty-state a:hover {
+  color: #fff;
+}
+
+@media (max-width: 800px) {
+  .account-content {
+    padding: 64px 20px;
+  }
+}

@@ -1,45 +1,11 @@
 <script setup lang="ts">
+import AppNavBar from '../components/AppNavBar.vue'
 import '../assets/styles/about.css'
 </script>
 
 <template>
   <div class="public-page">
-
-    <!-- NAVBAR -->
-    <header class="main-navbar">
-
-      <RouterLink to="/" class="brand">
-        <div class="brand-mark">
-          E
-        </div>
-
-        <div>
-          <div class="brand-name">
-            ExamLab
-          </div>
-
-          <div class="brand-subtitle">
-            Certification Practice
-          </div>
-        </div>
-      </RouterLink>
-
-      <nav>
-        <RouterLink to="/">
-          Exams
-        </RouterLink>
-
-        <RouterLink to="/about" class="active">
-          About
-        </RouterLink>
-
-        <RouterLink to="/login" class="login-link">
-          Sign in
-        </RouterLink>
-      </nav>
-
-    </header>
-
+    <AppNavBar active-link="about" />
 
     <!-- HERO -->
     <main class="about-page">
@@ -238,7 +204,7 @@ import '../assets/styles/about.css'
 
         </div>
 
-        <RouterLink to="/" class="primary-link">
+        <RouterLink to="/exams" class="primary-link">
           View exams →
         </RouterLink>
 

@@ -1,5 +1,52 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import '../assets/styles/auth.css'
+import { loginAccount } from '../services/auth'
+
+const router = useRouter()
+const route = useRoute()
+
+const email = ref('')
+const password = ref('')
+const rememberMe = ref(false)
+const loading = ref(false)
+const errorMessage = ref('')
+
+async function login() {
+  errorMessage.value = ''
+  loading.value = true
+
+  try {
+    const { accessToken } = await loginAccount({
+      email: email.value.trim(),
+      password: password.value,
+    })
+
+    if (rememberMe.value) {
+      localStorage.setItem('access_token', accessToken)
+      sessionStorage.removeItem('access_token')
+    } else {
+      sessionStorage.setItem('access_token', accessToken)
+      localStorage.removeItem('access_token')
+    }
+
+    const redirect = route.query.redirect
+    const destination = typeof redirect === 'string' &&
+      redirect.startsWith('/') &&
+      !redirect.startsWith('//') &&
+      !redirect.includes('\\')
+      ? redirect
+      : '/'
+    await router.push(destination)
+  } catch (error) {
+    errorMessage.value = error instanceof Error
+      ? error.message
+      : 'Unable to sign in. Please try again.'
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
@@ -49,15 +96,20 @@ import '../assets/styles/auth.css'
         </div>
 
 
-        <form class="auth-form">
+        <form
+          class="auth-form"
+          @submit.prevent="login"
+        >
 
           <label>
             Email address
 
             <input
+              v-model="email"
               type="email"
               placeholder="you@example.com"
               autocomplete="email"
+              required
             />
           </label>
 
@@ -66,9 +118,11 @@ import '../assets/styles/auth.css'
             Password
 
             <input
+              v-model="password"
               type="password"
               placeholder="Enter your password"
               autocomplete="current-password"
+              required
             />
           </label>
 
@@ -77,7 +131,10 @@ import '../assets/styles/auth.css'
 
             <label class="remember-option">
 
-              <input type="checkbox" />
+              <input
+                v-model="rememberMe"
+                type="checkbox"
+              />
 
               <span>
                 Remember me
@@ -91,12 +148,20 @@ import '../assets/styles/auth.css'
 
           </div>
 
+          <div
+            v-if="errorMessage"
+            class="auth-error"
+            role="alert"
+          >
+            {{ errorMessage }}
+          </div>
 
           <button
             type="submit"
             class="auth-submit"
+            :disabled="loading"
           >
-            Sign in
+            {{ loading ? 'Signing in...' : 'Sign in' }}
           </button>
 
         </form>
