@@ -82,7 +82,7 @@ onUnmounted(() => {
         About
       </RouterLink>
       <RouterLink v-if="isAuthenticated" to="/examtry">
-        Proxmox test
+        ExamTry
       </RouterLink>
 
       <RouterLink

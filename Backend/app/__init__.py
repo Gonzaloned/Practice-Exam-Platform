@@ -18,14 +18,16 @@ def create_app(test_config: dict | None = None):
     from .routes.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
 
-    from .routes.health import health_bp
-    app.register_blueprint(health_bp, url_prefix="/api")
+    from .routes.attempt_create import attempt_create_bp
+    app.register_blueprint(attempt_create_bp, url_prefix="/api")
 
-    from .routes.exam_sessions import exam_sessions_bp
-    app.register_blueprint(exam_sessions_bp, url_prefix="/api/exam")
+    from .routes.set_attempt_data import set_attempt_data_bp
+    app.register_blueprint(set_attempt_data_bp, url_prefix="/api")
 
-    from .routes.proxmox_console import proxmox_console_bp
-    app.register_blueprint(proxmox_console_bp, url_prefix="/api/proxmox")
+    from .routes.vm_environment_create import vm_environment_create_bp
+    app.register_blueprint(vm_environment_create_bp, url_prefix="/api")
+
+    from .routes import ssh_attempt_connection, ssh_console_flow
 
     socketio.init_app(
         app,

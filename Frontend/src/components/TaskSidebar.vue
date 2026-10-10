@@ -3,7 +3,7 @@
     <div class="sidebar-title">
       <div>
         <span class="eyebrow">PRACTICE EXAM</span>
-        <h2>LFCS — Linux Administration</h2>
+        <h2>{{ examTitle }}</h2>
       </div>
       <span class="task-count">{{ tasks.length }} tasks</span>
     </div>
@@ -40,6 +40,7 @@
 import type { Task } from '../data/exam'
 
 defineProps<{
+  examTitle: string
   tasks: Task[]
   selectedId: number
 }>()

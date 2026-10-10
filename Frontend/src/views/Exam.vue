@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import '../assets/styles/exam.css'
 import ExamHeader from '../components/ExamHeader.vue'
@@ -9,13 +9,20 @@ import { tasks as examTasks, type Task } from '../data/exam'
 import {
   ExamSessionError,
   expireLocalLogin,
-  finishExamSession,
-  getExamSession,
+  finishAttemptData,
+  setAttemptData,
   type ExamSession,
-} from '../services/examSessions'
+} from '../services/setAttemptData'
+import {
+  advanceAttemptEnvironment,
+  cleanupAttemptEnvironment,
+} from '../services/vmEnvironment'
 
 const route = useRoute()
 const router = useRouter()
+const ExamTerminal = defineAsyncComponent(
+  () => import('../components/ExamTerminal.vue')
+)
 const session = ref<ExamSession | null>(null)
 const isLoading = ref(true)
 const isFinishing = ref(false)
@@ -31,8 +38,16 @@ const selectedId = ref(tasks.value[0]?.id ?? 1)
 let pollTimer: number | undefined
 let clockTimer: number | undefined
 let requestInProgress = false
+let loadedQuestionAttemptId: number | null = null
 
 const sessionId = computed(() => String(route.params.sessionId))
+const isExamTry = computed(() => session.value?.exam_slug === 'examtry')
+const examTitle = computed(() => session.value?.exam_name ?? 'Practice exam')
+const examSubtitle = computed(() =>
+  isExamTry.value
+    ? 'Dedicated SSH practice environment'
+    : 'Linux Foundation Certified System Administrator'
+)
 const selectedTask = computed(() =>
   tasks.value.find(task => task.id === selectedId.value) ?? tasks.value[0]
 )
@@ -67,8 +82,26 @@ async function refreshSession() {
   }
   requestInProgress = true
   try {
-    const result = await getExamSession(sessionId.value)
+    const environmentData = await advanceAttemptEnvironment(sessionId.value)
+    const result = await setAttemptData(sessionId.value)
     session.value = result
+    session.value.environment_error = environmentData.environment_error
+    if (
+      result.exam_slug !== 'examtry' &&
+      result.questions.length > 0 &&
+      loadedQuestionAttemptId !== result.id
+    ) {
+      tasks.value = result.questions.map((question, index) => ({
+        id: question.id,
+        title: question.title,
+        category: 'Exam',
+        description: question.description,
+        requirements: [],
+        status: index === 0 ? 'current' : 'pending',
+      }))
+      selectedId.value = tasks.value[0]?.id ?? 1
+      loadedQuestionAttemptId = result.id
+    }
     errorMessage.value = ''
 
     if (result.status === 'completed' || result.status === 'expired') {
@@ -79,7 +112,8 @@ async function refreshSession() {
       return
     }
     if (result.status === 'failed') {
-      errorMessage.value = 'The exam environment could not be prepared. Return to the exam details and try again.'
+      errorMessage.value = environmentData.environment_error
+        || 'The exam environment could not be prepared. Return to the exam details and try again.'
       return
     }
   } catch (error) {
@@ -112,7 +146,8 @@ async function endExam() {
   isFinishing.value = true
   errorMessage.value = ''
   try {
-    const result = await finishExamSession(sessionId.value)
+    const result = await finishAttemptData(sessionId.value)
+    await cleanupAttemptEnvironment(result.id)
     await router.replace({
       name: 'exam-results',
       params: { sessionId: result.id },
@@ -152,6 +187,9 @@ onUnmounted(() => {
 <template>
   <div v-if="session?.status === 'running' && session.environment?.status === 'ready'" class="app-shell">
     <ExamHeader
+      :exam-title="examTitle"
+      :exam-subtitle="examSubtitle"
+      :show-progress="!isExamTry"
       :completed="completed"
       :total="tasks.length"
       :remaining-time="remainingTime"
@@ -159,13 +197,24 @@ onUnmounted(() => {
       @finish="endExam"
     />
 
-    <main class="exam-layout">
+    <main v-if="isExamTry" class="examtry-session-layout">
+      <section class="examtry-session-intro">
+        <div class="examtry-session-eyebrow">ATTEMPT #{{ session.id }}</div>
+        <h1>ExamTry workspace</h1>
+        <p>Your snapshot-backed VM is ready. Use the SSH terminal below.</p>
+      </section>
+      <ExamTerminal :attempt-id="session.id" />
+    </main>
+
+    <main v-else class="exam-layout">
       <TaskSidebar
+        exam-title="LFCS — Linux Administration"
         :tasks="tasks"
         :selected-id="selectedId"
         @select="selectTask"
       />
       <TaskPanel v-if="selectedTask" :task="selectedTask" />
+      <ExamTerminal :attempt-id="session.id" />
     </main>
     <div v-if="errorMessage" class="exam-session-error" role="alert">
       {{ errorMessage }}
@@ -196,7 +245,11 @@ onUnmounted(() => {
         <span class="exam-loading-status-dot"></span>
         {{ session.environment?.status === 'ready' ? 'Environment ready' : 'Provisioning the exam environment' }}
       </div>
-      <RouterLink v-if="errorMessage" to="/exams/lfcs" class="primary-link">
+      <RouterLink
+        v-if="errorMessage"
+        :to="session?.exam_slug === 'examtry' ? '/examtry' : '/exams/lfcs'"
+        class="primary-link"
+      >
         Return to exam details
       </RouterLink>
       <button
@@ -210,3 +263,32 @@ onUnmounted(() => {
     </section>
   </main>
 </template>
+
+<style scoped>
+.examtry-session-layout {
+  min-height: calc(100vh - 72px);
+  padding: clamp(1.25rem, 4vw, 3rem);
+}
+
+.examtry-session-intro {
+  max-width: 70rem;
+  margin: 0 auto;
+  color: #e8edf5;
+}
+
+.examtry-session-eyebrow {
+  color: #8cae92;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.examtry-session-intro h1 {
+  margin: 0.5rem 0;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+.examtry-session-intro p {
+  color: #aeb8c7;
+}
+</style>

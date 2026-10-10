@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ExamSessionError, expireLocalLogin, getExamSession, type ExamSession } from '../services/examSessions'
+import { ExamSessionError, type ExamSession } from '../services/attemptTypes'
+import { expireLocalLogin, setAttemptData } from '../services/setAttemptData'
+import { advanceAttemptEnvironment } from '../services/vmEnvironment'
 
 const route = useRoute()
 const router = useRouter()
@@ -11,7 +13,9 @@ const loading = ref(true)
 
 onMounted(async () => {
   try {
-    const result = await getExamSession(String(route.params.sessionId))
+    const attemptId = String(route.params.sessionId)
+    const environmentData = await advanceAttemptEnvironment(attemptId)
+    const result = await setAttemptData(attemptId)
     if (result.status === 'running' || result.status === 'provisioning') {
       await router.replace({
         name: 'exam-session',
@@ -20,6 +24,10 @@ onMounted(async () => {
       return
     }
     session.value = result
+    session.value.environment_error = environmentData.environment_error
+    if (environmentData.environment_error) {
+      errorMessage.value = environmentData.environment_error
+    }
     if (result.cleanup_error) {
       errorMessage.value = `The environment could not be shut down automatically: ${result.cleanup_error}`
     }

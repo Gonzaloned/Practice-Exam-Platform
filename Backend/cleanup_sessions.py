@@ -3,7 +3,7 @@ import time
 
 from app import create_app
 from app.extensions import db
-from app.routes.exam_sessions import expire_due_exam_sessions
+from app.services.vm_environment import expire_due_exam_attempts
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ def run_cleanup_worker() -> None:
     while True:
         with app.app_context():
             try:
-                processed_count = expire_due_exam_sessions()
+                processed_count = expire_due_exam_attempts()
                 if processed_count:
                     logger.info("Cleaned up %s exam session(s)", processed_count)
             except Exception:

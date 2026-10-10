@@ -57,14 +57,14 @@ API:
 - GET `/api/health`
 - POST `/api/auth/register`
 - POST `/api/auth/login`
-- POST `/api/exam/sessions` (authenticated; starts or resumes the user's LFCS session)
-- GET `/api/exam/sessions/<attempt_id>` (authenticated; checks readiness and expiry)
-- POST `/api/exam/sessions/<attempt_id>/finish` (authenticated; closes the attempt and lab)
-- GET `/api/proxmox/status` (authenticated; verifies Flask-to-Proxmox API access)
-- GET `/api/proxmox/vms` (authenticated; lists QEMU VMs on the configured node)
-- GET `/api/proxmox/vms/<vmid>` (authenticated; returns VM status)
-- POST `/api/proxmox/commands` (authenticated; starts/stops allowlisted VMs)
-- Socket.IO namespace `/proxmox` (JWT-authenticated command console)
+- GET `/api/exams/by-slug/<slug>` (returns the public exam definition and ID)
+- POST `/api/exams/<exam_id>/attempts` (authenticated; creates or resumes an attempt and records its VM requirements)
+- POST `/api/attempts/<attempt_id>/environment` (authenticated; creates the required VM clones)
+- GET `/api/attempts/<attempt_id>/environment` (authenticated; advances provisioning and reports every VM instance)
+- DELETE `/api/attempts/<attempt_id>/environment` (authenticated; deletes every VM instance after completion)
+- GET `/api/attempts/<attempt_id>` (authenticated; returns status, timing, and questions)
+- POST `/api/attempts/<attempt_id>/finish` (authenticated; completes the attempt)
+- Socket.IO namespace `/terminal` (JWT-authenticated SSH terminal for the attempt's main VM)
 
 Missing database tables are created automatically when the application starts.
 SQLAlchemy does not update existing tables when a model changes. If you are
@@ -87,6 +87,22 @@ mysql -u examlab -p examlab < migrations/002_add_lab_task_upid.sql
 Do not run this migration on a fresh database; `db.create_all()` creates the
 column there.
 
+For an existing database, apply the exam-to-VM and per-attempt VM-instance
+schema once:
+
+If `003_add_lab_snap_id.sql` has not already been applied, apply it first:
+
+```bash
+mysql -u examlab -p examlab < migrations/003_add_lab_snap_id.sql
+```
+
+```bash
+mysql -u examlab -p examlab < migrations/004_exam_vm_requirements.sql
+```
+
+Do not run this migration on a fresh database; `db.create_all()` creates these
+columns and tables.
+
 ## Exam session environment
 
 Copy `.env.example` to `.env`, set the database and secret values, then configure
@@ -102,13 +118,86 @@ the guest has a non-loopback IPv4 address. `PROXMOX_STORAGE` is optional when
 the template's storage configuration should be inherited. TLS verification is
 enabled by default; use a certificate trusted by the backend host.
 
-The authenticated access token and each exam attempt expire after 24 hours.
-Starting the same exam again resumes the user's active attempt. Session
-creation, readiness, completion, expiry, and environment cleanup are persisted
-through the existing `attempts` and `labs` tables. The authenticated API only
-returns an attempt to its owning account. The browser enters the loader as soon
-as the Proxmox clone operation is accepted; subsequent API polls advance the
-clone/start process and only mark the session running after guest readiness.
+New exam attempts use the duration in their `Exam` definition. Starting the
+same exam again resumes the user's active attempt. Attempt VM creation,
+readiness, completion, expiry, and cleanup are persisted through `attempts` and
+`attempt_vm_instances`. The authenticated API only returns an attempt to its
+owning account. The browser creates the attempt before requesting VM clones.
+The VM environment endpoint advances clone/start operations on subsequent
+polls and only marks the attempt running after all required guests are ready.
+
+The attempt APIs are divided by responsibility:
+
+| Backend route module | Responsibility | Endpoint |
+| --- | --- | --- |
+| `attempt_create.py` | Resolve exam definitions; persist attempt, VM requirements, and encrypted SSH credentials | `GET /api/exams/by-slug/<slug>`, `POST /api/exams/<id>/attempts` |
+| `set_attempt_data.py` | Return attempt status, timing, and database-backed questions; mark an attempt complete | `GET /api/attempts/<id>`, `POST /api/attempts/<id>/finish` |
+| `vm_environment_create.py` | Clone, advance, expire, and clean up the attempt's VMs | `POST`, `GET`, or `DELETE /api/attempts/<id>/environment` |
+| `ssh_attempt_connection.py` | Authenticate the terminal socket and open the attempt's verified SSH connection | Socket.IO `/terminal`, `terminal:connect` |
+| `ssh_console_flow.py` | Forward PTY input/output, terminal resize, and disconnect events | Socket.IO `/terminal`, `terminal:data`, `terminal:input`, `terminal:resize` |
+
+The Vue services mirror these boundaries: `attemptCreate`, `setAttemptData`,
+`vmEnvironment`, `sshAttemptConnection`, and `sshConsoleFlow`. Attempt creation
+stores the SSH keys server-side; the public key is injected only when the VM
+environment is prepared, and the private key is never sent to the browser.
+
+## Exam VM requirements and student terminal
+
+Each `Exam` can have 1–10 `ExamVMRequirement` rows in `exam_vm_requirements`.
+Every row identifies a Proxmox template VMID, optional snapshot ID, and display
+name; exactly one row must have `is_main = TRUE` and an SSH username. The
+`attempt_vm_instances` table records each actual clone, task UPID, guest IP,
+status, and cleanup timestamp. The exam duration remains defined by
+`exams.duration_minutes`.
+
+The LFCS example exam is seeded from `PROXMOX_TEMPLATE_VMID`,
+`PROXMOX_TEMPLATE_SNAP_ID`, and `EXAM_VM_SSH_USERNAME` when
+`GET /api/exams/by-slug/lfcs` is first requested and no VM requirements exist.
+ExamTry is also seeded on first request using `PROXMOX_TEMPLATE_VMID` and
+`EXAM_VM_SSH_USERNAME`, with its main VM pinned to Proxmox snapshot `901`.
+Starting ExamTry creates an attempt and a fresh clone; the attempt VM record
+stores the allocated VM ID. Once the clone is ready, the exam page connects to
+the Flask `/terminal` Socket.IO namespace, which opens and streams the SSH PTY.
+Other exams need their `exam_vm_requirements` rows configured in the database
+before students can start them. For example, to attach a primary VM and a
+database VM to an already-created exam:
+
+```sql
+INSERT INTO exam_vm_requirements
+    (exam_id, name, template_vmid, snap_id, node, ssh_username, is_main)
+VALUES
+    (2, 'main', 901, 'linux-base', NULL, 'examlab', TRUE),
+    (2, 'database', 902, 'database-base', NULL, NULL, FALSE);
+```
+
+Replace the example exam/template/snapshot IDs with the values present on your
+Proxmox server. Configure one main requirement only. Main VM templates must
+have an enabled Cloud-Init drive, QEMU guest agent, and OpenSSH server; the
+guest agent must be permitted to report addresses and read
+`/etc/ssh/ssh_host_ed25519_key.pub`. The Proxmox token therefore needs clone,
+VM configuration/cloud-init regeneration, guest-agent file open/read/close,
+network inspection, power-management, and delete permissions for the relevant
+templates and clones.
+
+The backend creates a unique Ed25519 SSH key pair per attempt, injects only the
+public key into the main VM using Proxmox Cloud-Init, and encrypts the private
+key stored with the attempt using `SSH_KEY_ENCRYPTION_KEY`. Generate this
+Fernet key once and keep it stable across backend restarts and replicas:
+
+```bash
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Put the result only in the backend `.env`; never send it to the browser or
+commit it. The guest agent supplies the main VM's SSH host public key through
+the authenticated Proxmox API, and Flask pins that key before opening SSH with
+Paramiko. Set `EXAM_VM_SSH_ALLOWED_CIDRS` to the comma-separated CIDRs used by
+the exam VM network (for example `10.50.0.0/16`). The terminal refuses SSH
+targets outside those networks and always rejects loopback, link-local,
+multicast, and unspecified addresses. The Vue exam workspace then streams
+PTY input/output over the JWT-authenticated `/terminal` Socket.IO namespace.
+The private key and Proxmox
+API token are never exposed to the browser.
 
 Run the cleanup worker as a second backend process so abandoned VMs are also
 stopped after expiry, even when the user has closed the browser:
@@ -119,68 +208,13 @@ venv/bin/python cleanup_sessions.py
 ```
 
 Keep this worker supervised by the deployment's process manager. It checks
-expired sessions every 30 seconds by default. Environment startup is marked
+expired attempts every 30 seconds by default. Environment startup is marked
 failed after ten minutes; the loader polls the API until the environment is
 ready or provisioning fails.
 
 The current task workspace remains a practice UI: task completion and scoring
 are not yet evaluated or persisted. The result page reports lifecycle and
 environment status without presenting an invented score.
-
-## Proxmox ExamTry console
-
-The authenticated Vue page at `/examtry` keeps a Socket.IO connection to Flask.
-Flask uses the Proxmox API token from its environment; credentials are never
-sent to the browser. The console supports `connect`, `vms`, `status <vmid>`,
-`start <vmid>`, and `stop <vmid>`. It does not run shell commands or forward
-arbitrary Proxmox API paths.
-
-Configure the backend `.env` with the API URL, token ID/secret, and node as
-described above. Set `PROXMOX_CONSOLE_ALLOWED_VMIDS` to a comma-separated list
-of disposable VM IDs that the console is allowed to start or stop; leave it
-empty to disable mutations. Do not include a production VM or the exam template
-VM. Restart Flask after changing the setting. All authenticated accounts may
-read the configured node's QEMU VM inventory, but start/stop requests are
-rejected unless the VM ID is allowlisted.
-The Proxmox API token needs node-audit/read permissions for connection status,
-inventory, and VM status, plus VM power-management permission only for the
-allowlisted VM IDs. The exam template is blocked from console start/stop even
-if it is mistakenly added to the allowlist.
-
-Start Flask normally and configure the frontend's `VITE_API_BASE_URL` to the
-Flask base URL if it is not `http://127.0.0.1:5000`. Sign in, open **Proxmox
-test**, then run `connect` to verify the Proxmox API token and node access, `vms`
-to list VMs, `status 5100` to inspect a VM, or `start 5100` / `stop 5100` for
-an allowlisted test VM. Mutating commands return the Proxmox task UPID when one
-is created; use `status <vmid>` to check the VM afterward.
-
-### Console API and request flow
-
-The ExamTry page opens a persistent Socket.IO connection to Flask at
-`/proxmox`. It sends the JWT in the Socket.IO handshake `auth` object and emits
-`proxmox:command` with an allowlisted command and optional VM ID. Flask verifies
-the access token when connecting, validates each command, calls the Proxmox
-provider, and returns the result as the event acknowledgement.
-
-| Socket command | Flask operation | Proxmox API operation |
-| --- | --- | --- |
-| `{"command":"connect"}` | Test backend connection and node access | `GET /version`, `GET /nodes/{node}/status` |
-| `{"command":"vms"}` | List QEMU VMs on the configured node | `GET /nodes/{node}/qemu` |
-| `{"command":"status","vmid":5100}` | Read one VM's current status | `GET /nodes/{node}/qemu/{vmid}/status/current` |
-| `{"command":"start","vmid":5100}` | Validate the command and VM allowlist | `POST /nodes/{node}/qemu/{vmid}/status/start` |
-| `{"command":"stop","vmid":5100}` | Validate the command and VM allowlist | Read VM status, then `POST .../status/stop` if running |
-
-The REST endpoints above remain available for HTTP clients. Flask starts with
-`socketio.run` in `run.py`; do not replace it with `app.run` when using the
-interactive console. For local development, install backend requirements and
-run `python run.py`, then install frontend dependencies and run `npm run dev`
-from `Frontend`.
-
-Every HTTP endpoint requires the existing Flask JWT bearer token. Socket.IO
-clients provide that access token as `auth.token` during the handshake. The Vue
-console uses a fixed command grammar; no client-provided URL, HTTP method, or
-shell text is forwarded to Proxmox. Set `SOCKETIO_CORS_ALLOWED_ORIGINS` to the
-deployed frontend origin instead of `*` in production.
 
 ## Example register
 

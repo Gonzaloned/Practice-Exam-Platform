@@ -3,7 +3,8 @@ import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppNavBar from '../components/AppNavBar.vue'
 import { getCatalogExam } from '../data/catalog'
-import { ExamSessionError, startExamSession } from '../services/examSessions'
+import { createAttemptForExam } from '../services/attemptCreate'
+import { ExamSessionError } from '../services/attemptTypes'
 import '../assets/styles/catalog.css'
 
 const route = useRoute()
@@ -26,7 +27,7 @@ async function launchExam() {
   isStarting.value = true
   startError.value = ''
   try {
-    const session = await startExamSession(exam.value.slug)
+    const session = await createAttemptForExam(exam.value.slug)
     if (session.status === 'failed') {
       throw new Error('This exam session could not be started. Please try again.')
     }

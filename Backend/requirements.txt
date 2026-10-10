@@ -6,3 +6,5 @@ Flask-JWT-Extended
 Flask-SocketIO
 PyMySQL
 python-dotenv
+cryptography
+paramiko

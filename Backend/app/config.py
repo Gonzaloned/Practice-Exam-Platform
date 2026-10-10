@@ -23,10 +23,8 @@ class Config:
     PROXMOX_API_TOKEN_SECRET = os.getenv("PROXMOX_API_TOKEN_SECRET", "")
     PROXMOX_NODE = os.getenv("PROXMOX_NODE", "")
     PROXMOX_TEMPLATE_VMID = os.getenv("PROXMOX_TEMPLATE_VMID", "")
+    PROXMOX_TEMPLATE_SNAP_ID = os.getenv("PROXMOX_TEMPLATE_SNAP_ID", "")
     PROXMOX_STORAGE = os.getenv("PROXMOX_STORAGE", "")
-    PROXMOX_CONSOLE_ALLOWED_VMIDS = os.getenv(
-        "PROXMOX_CONSOLE_ALLOWED_VMIDS", ""
-    )
     SOCKETIO_CORS_ALLOWED_ORIGINS = os.getenv(
         "SOCKETIO_CORS_ALLOWED_ORIGINS", "*"
     )
@@ -36,3 +34,8 @@ class Config:
         "no",
     }
     PROXMOX_TIMEOUT_SECONDS = 20
+    SSH_KEY_ENCRYPTION_KEY = os.getenv("SSH_KEY_ENCRYPTION_KEY", "")
+    SSH_PORT = int(os.getenv("SSH_PORT", "22"))
+    SSH_CONNECT_TIMEOUT_SECONDS = 10
+    EXAM_VM_SSH_ALLOWED_CIDRS = os.getenv("EXAM_VM_SSH_ALLOWED_CIDRS", "")
+    EXAM_VM_SSH_USERNAME = os.getenv("EXAM_VM_SSH_USERNAME", "examlab")

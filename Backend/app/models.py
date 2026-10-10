@@ -27,20 +27,64 @@ class Exam(db.Model):
     __tablename__ = "exams"
 
     id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(100), nullable=True, unique=True, index=True)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     duration_minutes = db.Column(db.Integer, nullable=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
+    vm_requirements = db.relationship(
+        "ExamVMRequirement",
+        back_populates="exam",
+        cascade="all, delete-orphan",
+        order_by="ExamVMRequirement.id",
+    )
+
     def to_dict(self):
         return {
             "id": self.id,
+            "slug": self.slug,
             "name": self.name,
             "description": self.description,
             "duration_minutes": self.duration_minutes,
             "active": self.active,
             "created_at": self.created_at.isoformat(),
+            "vm_requirements": [
+                requirement.to_dict() for requirement in self.vm_requirements
+            ],
+        }
+
+
+class ExamVMRequirement(db.Model):
+    __tablename__ = "exam_vm_requirements"
+
+    id = db.Column(db.Integer, primary_key=True)
+    exam_id = db.Column(
+        db.Integer,
+        db.ForeignKey("exams.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    name = db.Column(db.String(100), nullable=False)
+    template_vmid = db.Column(db.Integer, nullable=False)
+    snap_id = db.Column(db.String(255), nullable=True)
+    node = db.Column(db.String(100), nullable=True)
+    ssh_username = db.Column(db.String(100), nullable=True)
+    is_main = db.Column(db.Boolean, nullable=False, default=False)
+
+    exam = db.relationship("Exam", back_populates="vm_requirements")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "exam_id": self.exam_id,
+            "name": self.name,
+            "template_vmid": self.template_vmid,
+            "snap_id": self.snap_id,
+            "node": self.node,
+            "ssh_username": self.ssh_username,
+            "is_main": self.is_main,
         }
 
 
@@ -113,6 +157,15 @@ class Attempt(db.Model):
         nullable=True
     )
 
+    ssh_private_key_encrypted = db.Column(db.Text, nullable=True)
+    ssh_public_key = db.Column(db.Text, nullable=True)
+    vm_instances = db.relationship(
+        "AttemptVMInstance",
+        back_populates="attempt",
+        cascade="all, delete-orphan",
+        order_by="AttemptVMInstance.id",
+    )
+
     def to_dict(self):
         return {
             "id": self.id,
@@ -126,6 +179,53 @@ class Attempt(db.Model):
                 else None
             ),
             "score": self.score,
+            "vm_instances": [instance.to_dict() for instance in self.vm_instances],
+        }
+
+
+class AttemptVMInstance(db.Model):
+    __tablename__ = "attempt_vm_instances"
+
+    id = db.Column(db.Integer, primary_key=True)
+    attempt_id = db.Column(
+        db.Integer,
+        db.ForeignKey("attempts.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    requirement_id = db.Column(
+        db.Integer,
+        db.ForeignKey("exam_vm_requirements.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    name = db.Column(db.String(100), nullable=False)
+    template_vmid = db.Column(db.Integer, nullable=False)
+    snap_id = db.Column(db.String(255), nullable=True)
+    vm_id = db.Column(db.Integer, nullable=True, unique=True)
+    node = db.Column(db.String(100), nullable=True)
+    task_upid = db.Column(db.String(255), nullable=True)
+    status = db.Column(db.String(20), nullable=False, default="creating")
+    ip_address = db.Column(db.String(45), nullable=True)
+    is_main = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    destroyed_at = db.Column(db.DateTime, nullable=True)
+
+    attempt = db.relationship("Attempt", back_populates="vm_instances")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "attempt_id": self.attempt_id,
+            "requirement_id": self.requirement_id,
+            "name": self.name,
+            "vm_id": self.vm_id,
+            "status": self.status,
+            "is_main": self.is_main,
+            "created_at": self.created_at.isoformat(),
+            "destroyed_at": (
+                self.destroyed_at.isoformat() if self.destroyed_at else None
+            ),
         }
 
 
@@ -214,6 +314,11 @@ class Lab(db.Model):
         nullable=True
     )
 
+    snap_id = db.Column(
+        db.String(255),
+        nullable=True
+    )
+
     status = db.Column(
         db.String(20),
         nullable=False,
@@ -238,6 +343,7 @@ class Lab(db.Model):
             "provider": self.provider,
             "node": self.node,
             "vm_id": self.vm_id,
+            "snap_id": self.snap_id,
             "status": self.status,
             "created_at": self.created_at.isoformat(),
             "destroyed_at": (

@@ -34,6 +34,19 @@ export const catalogExams: CatalogExam[] = [
     ],
     format: 'Hands-on Linux administration tasks',
   },
+  {
+    slug: 'examtry',
+    title: 'ExamTry',
+    provider: 'ExamLab',
+    icon: 'ET',
+    summary:
+      'Launch a dedicated VM from snapshot 901 and practice through a live SSH terminal.',
+    description:
+      'Start an isolated virtual machine cloned from the ExamTry snapshot. The exam workspace connects to the VM over an authenticated SSH terminal streamed through Flask.',
+    taskCount: 1,
+    topics: ['VM provisioning', 'SSH terminal practice'],
+    format: 'Interactive SSH terminal',
+  },
 ]
 
 export function getCatalogExam(slug: string | string[] | undefined): CatalogExam | undefined {
